@@ -1,0 +1,319 @@
+-- Plantilla de Script Hub Pro (Aimbot + FOV + ESP + Spinbot + Ocultar Nombre + Slider 1-50)
+
+-- 1. Notificación inicial
+game:GetService("StarterGui"):SetCore("SendNotification", {
+    Title = "Mi Script Hub Pro",
+    Text = "¡Todas las funciones y el Slider cargados!",
+    Duration = 5
+})
+
+-- 2. Crear la interfaz gráfica (UI) del Menú
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local TitleLabel = Instance.new("TextLabel")
+
+local AimbotButton = Instance.new("TextButton")
+local EspButton = Instance.new("TextButton")
+local SpinButton = Instance.new("TextButton")
+local HideNameButton = Instance.new("TextButton")
+
+-- Elementos del Slider (1 al 50)
+local SliderTitle = Instance.new("TextLabel")
+local SliderBackground = Instance.new("Frame")
+local SliderFill = Instance.new("Frame")
+local SliderButton = Instance.new("TextButton")
+
+ScreenGui.Name = "FullHubGui"
+ScreenGui.Parent = game.CoreGui
+
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.Position = UDim2.new(0.5, -100, 0.5, -165)
+MainFrame.Size = UDim2.new(0, 200, 0, 330) -- Tamaño ampliado para incluir el slider
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+TitleLabel.Name = "Title"
+TitleLabel.Parent = MainFrame
+TitleLabel.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+TitleLabel.Size = UDim2.new(0, 200, 0, 30)
+TitleLabel.Font = Enum.Font.SourceSansBold
+TitleLabel.Text = "Hermanos'Dev Style Hub"
+TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleLabel.TextSize = 16
+
+-- Botón Aimbot
+AimbotButton.Parent = MainFrame
+AimbotButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+AimbotButton.Position = UDim2.new(0, 20, 0, 45)
+AimbotButton.Size = UDim2.new(0, 160, 0, 32)
+AimbotButton.Font = Enum.Font.SourceSans
+AimbotButton.Text = "Aimbot + FOV: OFF"
+AimbotButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+AimbotButton.TextSize = 13
+
+-- Botón ESP
+EspButton.Parent = MainFrame
+EspButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+EspButton.Position = UDim2.new(0, 20, 0, 82)
+EspButton.Size = UDim2.new(0, 160, 0, 32)
+EspButton.Font = Enum.Font.SourceSans
+EspButton.Text = "ESP: OFF"
+EspButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+EspButton.TextSize = 13
+
+-- Botón Spinbot
+SpinButton.Parent = MainFrame
+SpinButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+SpinButton.Position = UDim2.new(0, 20, 0, 119)
+SpinButton.Size = UDim2.new(0, 160, 0, 32)
+SpinButton.Font = Enum.Font.SourceSans
+SpinButton.Text = "Spinbot: OFF"
+SpinButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpinButton.TextSize = 13
+
+-- Botón Ocultar Nombre
+HideNameButton.Parent = MainFrame
+HideNameButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+HideNameButton.Position = UDim2.new(0, 20, 0, 156)
+HideNameButton.Size = UDim2.new(0, 160, 0, 32)
+HideNameButton.Font = Enum.Font.SourceSans
+HideNameButton.Text = "Ocultar Nombre: OFF"
+HideNameButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+HideNameButton.TextSize = 13
+
+-- UI del Slider (Velocidad 1 al 50)
+SliderTitle.Parent = MainFrame
+SliderTitle.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+SliderTitle.Position = UDim2.new(0, 20, 0, 198)
+SliderTitle.Size = UDim2.new(0, 160, 0, 20)
+SliderTitle.Font = Enum.Font.SourceSansBold
+SliderTitle.Text = "Spin Speed: 25" -- Valor por defecto en la mitad
+SliderTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+SliderTitle.TextSize = 13
+
+SliderBackground.Parent = MainFrame
+SliderBackground.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+SliderBackground.Position = UDim2.new(0, 20, 0, 222)
+SliderBackground.Size = UDim2.new(0, 160, 0, 10)
+
+SliderFill.Parent = SliderBackground
+SliderFill.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+SliderFill.Size = UDim2.new(0.5, 0, 1, 0) -- Empieza a la mitad (25)
+
+SliderButton.Parent = SliderBackground
+SliderButton.BackgroundTransparency = 1
+SliderButton.Size = UDim2.new(1, 0, 1, 0)
+SliderButton.Text = ""
+
+-- Servicios necesarios
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+-- Variables de estado
+local aimbotEnabled = false
+local espEnabled = false
+local spinbotEnabled = false
+local hideNameEnabled = false
+local spinSpeed = 25 -- Valor inicial (rango 1 al 50)
+
+---------------------------------------------------
+-- 3. CÍRCULO DE FOV (ARCOÍRIS)
+---------------------------------------------------
+local fovCircle = Drawing.new("Circle")
+fovCircle.Thickness = 2
+fovCircle.NumSides = 60
+fovCircle.Radius = 130
+fovCircle.Filled = false
+fovCircle.Visible = false
+fovCircle.Transparency = 1
+
+---------------------------------------------------
+-- 4. LÓGICA DEL SLIDER (1 AL 50)
+---------------------------------------------------
+local draggingSlider = false
+
+SliderButton.MouseButton1Down:Connect(function()
+    draggingSlider = true
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        draggingSlider = false
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    if draggingSlider then
+        local mousePos = UserInputService:GetMouseLocation()
+        local sliderPos = SliderBackground.AbsolutePosition
+        local sliderSize = SliderBackground.AbsoluteSize
+        
+        -- Calcula el porcentaje en el que se encuentra el mouse dentro de la barra
+        local percentage = math.clamp((mousePos.X - sliderPos.X) / sliderSize.X, 0, 1)
+        
+        -- Ajusta gráficamente la barra
+        SliderFill.Size = UDim2.new(percentage, 0, 1, 0)
+        
+        -- Convierte el porcentaje (0 a 1) en un número exacto del 1 al 50
+        spinSpeed = math.floor(percentage * 49 + 1)
+        SliderTitle.Text = "Spin Speed: " .. tostring(spinSpeed)
+    end
+end)
+
+---------------------------------------------------
+-- 5. LÓGICA DE AIMBOT CON FOV
+---------------------------------------------------
+local function getClosestPlayer()
+    local closestPlayer = nil
+    local shortestDistance = math.huge
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+            if humanoid and humanoid.Health > 0 then
+                local rootPart = player.Character.HumanoidRootPart
+                local screenPoint, onScreen = Camera:WorldToScreenPoint(rootPart.Position)
+                
+                if onScreen then
+                    local mousePos = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+                    local distance = (Vector2.new(screenPoint.X, screenPoint.Y) - mousePos).Magnitude
+
+                    if distance < fovCircle.Radius and distance < shortestDistance then
+                        shortestDistance = distance
+                        closestPlayer = player
+                    end
+                end
+            end
+        end
+    end
+    return closestPlayer
+end
+
+AimbotButton.MouseButton1Click:Connect(function()
+    aimbotEnabled = not aimbotEnabled
+    AimbotButton.BackgroundColor3 = aimbotEnabled and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(60, 60, 60)
+    AimbotButton.Text = aimbotEnabled and "Aimbot + FOV: ON" or "Aimbot + FOV: OFF"
+    fovCircle.Visible = aimbotEnabled
+end)
+
+---------------------------------------------------
+-- 6. LÓGICA DE ESP
+---------------------------------------------------
+local function applyESP(player)
+    if player ~= LocalPlayer then
+        player.CharacterAdded:Connect(function(character)
+            if espEnabled then
+                local highlight = Instance.new("Highlight")
+                highlight.Name = "CustomESP"
+                highlight.Adornee = character
+                highlight.FillColor = Color3.fromRGB(255, 0, 0)
+                highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+                highlight.Parent = character
+            end
+        end)
+    end
+end
+
+for _, player in ipairs(Players:GetPlayers()) do
+    applyESP(player)
+end
+Players.PlayerAdded:Connect(applyESP)
+
+EspButton.MouseButton1Click:Connect(function()
+    espEnabled = not espEnabled
+    EspButton.BackgroundColor3 = espEnabled and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(60, 60, 60)
+    EspButton.Text = espEnabled and "ESP: ON" or "ESP: OFF"
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character then
+            if espEnabled then
+                if not player.Character:FindFirstChild("CustomESP") then
+                    local highlight = Instance.new("Highlight")
+                    highlight.Name = "CustomESP"
+                    highlight.Adornee = player.Character
+                    highlight.FillColor = Color3.fromRGB(255, 0, 0)
+                    highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+                    highlight.Parent = player.Character
+                end
+            else
+                local highlight = player.Character:FindFirstChild("CustomESP")
+                if highlight then highlight:Destroy() end
+            end
+        end
+    end
+end)
+
+---------------------------------------------------
+-- 7. LÓGICA DE SPINBOT
+---------------------------------------------------
+SpinButton.MouseButton1Click:Connect(function()
+    spinbotEnabled = not spinbotEnabled
+    SpinButton.BackgroundColor3 = spinbotEnabled and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(60, 60, 60)
+    SpinButton.Text = spinbotEnabled and "Spinbot: ON" or "Spinbot: OFF"
+end)
+
+---------------------------------------------------
+-- 8. LÓGICA DE OCULTAR NOMBRE
+---------------------------------------------------
+local function toggleHideName(state)
+    local character = LocalPlayer.Character
+    if character then
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid.DisplayDistanceType = state and Enum.HumanoidDisplayDistanceType.None or Enum.HumanoidDisplayDistanceType.Viewer
+        end
+        
+        local head = character:FindFirstChild("Head")
+        if head then
+            for _, child in ipairs(head:GetChildren()) do
+                if child:IsA("BillboardGui") then
+                    child.Enabled = not state
+                end
+            end
+        end
+    end
+end
+
+HideNameButton.MouseButton1Click:Connect(function()
+    hideNameEnabled = not hideNameEnabled
+    HideNameButton.BackgroundColor3 = hideNameEnabled and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(60, 60, 60)
+    HideNameButton.Text = hideNameEnabled and "Ocultar Nombre: ON" or "Ocultar Nombre: OFF"
+    
+    toggleHideName(hideNameEnabled)
+end)
+
+LocalPlayer.CharacterAdded:Connect(function(newCharacter)
+    newCharacter:WaitForChild("Humanoid")
+    if hideNameEnabled then
+        task.wait(0.5)
+        toggleHideName(true)
+    end
+end)
+
+---------------------------------------------------
+-- BUCLE PRINCIPAL (RENDERSTEPPED)
+---------------------------------------------------
+RunService.RenderStepped:Connect(function()
+    -- Actualizar FOV y colores si el aimbot está activo
+    if aimbotEnabled then
+        fovCircle.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+        local hue = tick() % 5 / 5
+        fovCircle.Color = Color3.fromHSV(hue, 1, 1)
+
+        local target = getClosestPlayer()
+        if target and target.Character and target.Character:FindFirstChild("Head") then
+            Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Character.Head.Position)
+        end
+    end
+
+    -- Spinbot Loop (Usa la velocidad seleccionada en el slider de 1 al 50)
+    if spinbotEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local rootPart = LocalPlayer.Character.HumanoidRootPart
+        rootPart.CFrame = rootPart.CFrame * CFrame.Angles(0, math.rad(spinSpeed), 0)
+    end
+end)

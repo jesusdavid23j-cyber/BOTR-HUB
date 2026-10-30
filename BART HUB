@@ -1,0 +1,28 @@
+local button = script.Parent
+local activo = false
+
+local function actualizarBoton()
+    if activo then
+        button.Text = "Desactivar"
+        button.BackgroundColor3 = Color3.fromRGB(255, 50, 50) -- Rojo al estar activo
+    else
+        button.Text = "Activar"
+        button.BackgroundColor3 = Color3.fromRGB(50, 200, 50) -- Verde al estar inactivo
+    end
+end
+
+-- Inicializar estado visual
+actualizarBoton()
+
+-- Evento al hacer clic
+button.MouseButton1Click:Connect(function()
+    activo = not activo
+    actualizarBoton()
+    
+    -- Aquí se coloca la lógica personalizada del desarrollador
+    if activo then
+        print("Módulo activado")
+    else
+        print("Módulo desactivado")
+    end
+end)

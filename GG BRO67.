@@ -1,9 +1,9 @@
--- Plantilla de Script Hub Pro (Aimbot + Detección de RPG + Excepción de Amigos + ESP + Spinbot + Ocultar Nombre + Sliders)
+-- Plantilla de Script Hub Pro (Aimbot + Inventario de Armas + Excepción de Amigos + ESP + Spinbot + Sliders)
 
 -- 1. Notificación inicial
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "Mi Script Hub Pro",
-    Text = "¡Detección de RPG y Lista de Amigos listas!",
+    Text = "¡Detección de inventario de armas lista!",
     Duration = 5
 })
 
@@ -30,7 +30,7 @@ local SpeedBackground = Instance.new("Frame")
 local SpeedFill = Instance.new("Frame")
 local SpeedButton = Instance.new("TextButton")
 
--- 3. Sección de Lista de Amigos / Detección de RPG
+-- 3. Sección de Lista de Amigos e Inventario
 local FriendsTitle = Instance.new("TextLabel")
 local FriendsScrolling = Instance.new("ScrollingFrame")
 local UIListLayout = Instance.new("UIListLayout")
@@ -154,13 +154,13 @@ SpeedButton.BackgroundTransparency = 1
 SpeedButton.Size = UDim2.new(1, 0, 1, 0)
 SpeedButton.Text = ""
 
--- UI de la Lista de Amigos y Servidor
+-- UI de la Lista de Servidor e Inventario
 FriendsTitle.Parent = MainFrame
 FriendsTitle.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 FriendsTitle.Position = UDim2.new(0, 20, 0, 258)
 FriendsTitle.Size = UDim2.new(0, 180, 0, 20)
 FriendsTitle.Font = Enum.Font.SourceSansBold
-FriendsTitle.Text = "Servidor (Rojo = Ignorado):"
+FriendsTitle.Text = "Servidor & Inventario:"
 FriendsTitle.TextColor3 = Color3.fromRGB(200, 200, 200)
 FriendsTitle.TextSize = 12
 
@@ -211,7 +211,7 @@ ToggleMenuButton.MouseButton1Click:Connect(function()
 end)
 
 ---------------------------------------------------
--- GESTIÓN DINÁMICA DE LA LISTA Y DETECCIÓN DE RPG
+-- GESTIÓN DINÁMICA DE LA LISTA E INVENTARIO
 ---------------------------------------------------
 local function createPlayerButton(player)
     if player == LocalPlayer then return end
@@ -220,13 +220,13 @@ local function createPlayerButton(player)
     pButton.Name = player.Name
     pButton.Parent = FriendsScrolling
     pButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    pButton.Size = UDim2.new(1, -5, 0, 26)
-    pButton.Font = Enum.Font.SourceSans
-    pButton.Text = player.Name
+    pButton.Size = UDim2.new(1, -5, 0, 34) -- Tamaño ligeramente mayor para acomodar el inventario
+    pButton.Font = Enum.Font.SourceSansBold
+    pButton.Text = player.Name .. "\n[Armas: Ninguna]"
     pButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    pButton.TextSize = 12
+    pButton.TextSize = 11
     
-    -- Evento al hacer clic en el nombre para alternar la excepción de aimbot
+    -- Evento al hacer clic en el botón para ignorar/des-ignorar del aimbot
     pButton.MouseButton1Click:Connect(function()
         if ignoredPlayers[player] then
             ignoredPlayers[player] = nil
@@ -311,31 +311,33 @@ RunService.RenderStepped:Connect(function()
         end
     end
     
-    -- Revisar en tiempo real si tienen un RPG equipado para actualizar la interfaz de la lista
+    -- Actualizar en tiempo real el inventario de armas de cada jugador
     for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character then
+        if player ~= LocalPlayer then
             local btn = FriendsScrolling:FindFirstChild(player.Name)
             if btn then
-                local hasRPG = false
-                -- Busca si tiene un Tool equipado con "rpg" o "rocket" en el nombre
-                for _, item in ipairs(player.Character:GetChildren()) do
-                    if item:IsA("Tool") then
-                        local lowerName = string.lower(item.Name)
-                        if string.find(lowerName, "rpg") or string.find(lowerName, "rocket") then
-                            hasRPG = true
-                            break
+                local weapons = {}
+                
+                -- Revisar en la mochila (Backpack)
+                if player:FindFirstChild("Backpack") then
+                    for _, item in ipairs(player.Backpack:GetChildren()) do
+                        if item:IsA("Tool") then
+                            table.insert(weapons, item.Name)
                         end
                     end
                 end
                 
-                -- Si tiene RPG y no está marcado manualmente como ignorado, ponle un tono naranja de alerta
-                if hasRPG and not ignoredPlayers[player] then
-                    btn.BackgroundColor3 = Color3.fromRGB(200, 100, 0)
-                    btn.Text = player.Name .. " [RPG!]"
-                elseif not ignoredPlayers[player] then
-                    btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-                    btn.Text = player.Name
+                -- Revisar en el personaje equipado (Character)
+                if player.Character then
+                    for _, item in ipairs(player.Character:GetChildren()) do
+                        if item:IsA("Tool") then
+                            table.insert(weapons, item.Name)
+                        end
+                    end
                 end
+                
+                local weaponsText = #weapons > 0 and table.concat(weapons, ", ") or "Ninguna"
+                btn.Text = player.Name .. "\n[Armas: " .. weaponsText .. "]"
             end
         end
     end
@@ -491,7 +493,7 @@ RunService.RenderStepped:Connect(function()
     end
 
     if spinbotEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        let rootPart = LocalPlayer.Character.HumanoidRootPart
+        local rootPart = LocalPlayer.Character.HumanoidRootPart
         rootPart.CFrame = rootPart.CFrame * CFrame.Angles(0, math.rad(spinSpeed), 0)
     end
 end)

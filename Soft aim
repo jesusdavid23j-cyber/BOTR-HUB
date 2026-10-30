@@ -1,0 +1,112 @@
+-- Plantilla de Script Hub Pro (PC y Celular - Aimbot + ESP + Spinbot + Ocultar Nombre + Sliders + Inventario)
+
+-- 1. Notificación inicial
+game:GetService("StarterGui"):SetCore("SendNotification", {
+    Title = "Mi Script Hub Pro",
+    Text = "¡Versión para PC y Celular cargada!",
+    Duration = 5
+})
+
+-- 2. Crear la interfaz gráfica (UI) del Menú principal
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local TitleLabel = Instance.new("TextLabel")
+local ToggleMenuButton = Instance.new("TextButton")
+
+local AimbotButton = Instance.new("TextButton")
+local EspButton = Instance.new("TextButton")
+local SpinButton = Instance.new("TextButton")
+local HideNameButton = Instance.new("TextButton")
+
+-- Elementos del Slider Spin Speed (1 al 50)
+local SliderTitle = Instance.new("TextLabel")
+local SliderBackground = Instance.new("Frame")
+local SliderFill = Instance.new("Frame")
+local SliderButton = Instance.new("TextButton")
+
+-- Elementos del Slider Character Speed (1 al 50)
+local SpeedTitle = Instance.new("TextLabel")
+local SpeedBackground = Instance.new("Frame")
+local SpeedFill = Instance.new("Frame")
+local SpeedButton = Instance.new("TextButton")
+
+-- 3. Sección de Lista de Servidor e Inventario
+local FriendsTitle = Instance.new("TextLabel")
+local FriendsScrolling = Instance.new("ScrollingFrame")
+local UIListLayout = Instance.new("UIListLayout")
+
+ScreenGui.Name = "FullHubGui"
+ScreenGui.Parent = game.CoreGui
+
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.Position = UDim2.new(0.5, -110, 0.5, -245)
+MainFrame.Size = UDim2.new(0, 220, 0, 490)
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+TitleLabel.Name = "Title"
+TitleLabel.Parent = MainFrame
+TitleLabel.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+TitleLabel.Size = UDim2.new(0, 220, 0, 30)
+TitleLabel.Font = Enum.Font.SourceSansBold
+TitleLabel.Text = "  Hermanos'Dev Style Hub"
+TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleLabel.TextSize = 15
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Botón de Minimizar (-)
+ToggleMenuButton.Parent = TitleLabel
+ToggleMenuButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+ToggleMenuButton.Position = UDim2.new(1, -26, 0, 4)
+ToggleMenuButton.Size = UDim2.new(0, 22, 0, 22)
+ToggleMenuButton.Font = Enum.Font.SourceSansBold
+ToggleMenuButton.Text = "-"
+ToggleMenuButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleMenuButton.TextSize = 14
+
+-- Botón Aimbot
+AimbotButton.Parent = MainFrame
+AimbotButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+AimbotButton.Position = UDim2.new(0, 20, 0, 45)
+AimbotButton.Size = UDim2.new(0, 180, 0, 30)
+AimbotButton.Font = Enum.Font.SourceSans
+AimbotButton.Text = "Aimbot + FOV: OFF"
+AimbotButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+AimbotButton.TextSize = 13
+
+-- Botón ESP
+EspButton.Parent = MainFrame
+EspButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+EspButton.Position = UDim2.new(0, 20, 0, 79)
+EspButton.Size = UDim2.new(0, 180, 0, 30)
+EspButton.Font = Enum.Font.SourceSans
+EspButton.Text = "ESP: OFF"
+EspButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+EspButton.TextSize = 13
+
+-- Botón Spinbot
+SpinButton.Parent = MainFrame
+SpinButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+SpinButton.Position = UDim2.new(0, 20, 0, 113)
+SpinButton.Size = UDim2.new(0, 180, 0, 30)
+SpinButton.Font = Enum.Font.SourceSans
+SpinButton.Text = "Spinbot: OFF"
+SpinButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpinButton.TextSize = 13
+
+-- Botón Ocultar Nombre
+HideNameButton.Parent = MainFrame
+HideNameButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+HideNameButton.Position = UDim2.new(0, 20, 0, 147)
+HideNameButton.Size = UDim2.new(0, 180, 0, 30)
+HideNameButton.Font = Enum.Font.SourceSans
+HideNameButton.Text = "Ocultar Nombre: OFF"
+HideNameButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+HideNameButton.TextSize = 13
+
+-- UI del Slider Spin Speed (1 al 50)
+SliderTitle.Parent = MainFrame
+SliderTitle.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+SliderTitle.Position = UDim2.new(0, 20, 0, 185)

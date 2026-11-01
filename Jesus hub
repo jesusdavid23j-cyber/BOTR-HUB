@@ -1,0 +1,182 @@
+-- SEXYBOY SCRIPTS // BlooSpin Main Entry
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
+
+local LocalPlayer = Players.LocalPlayer
+local Camera = Workspace.CurrentCamera
+
+local Config = {
+    ESP_Box = true,
+    ESP_Health = true,
+    ESP_Inventory = true,
+    ESP_Distance = true,
+    SilentAim_RPG = true,
+    SilentAim_Weapons = true,
+    UnderMap = false,
+    AutoFarm = true
+}
+
+print("[SEXYBOY] Initializing BlooSpin Hub for " .. LocalPlayer.Name)
+
+---------------------------------------------------------
+-- UTILS & TARGETING
+---------------------------------------------------------
+local function GetClosestPlayer()
+    local closestPlayer = nil
+    local shortestDistance = math.huge
+
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character:FindFirstChildOfClass("Humanoid").Health > 0 then
+            local pos, onScreen = Camera:WorldToViewportPoint(player.Character.HumanoidRootPart.Position)
+            if onScreen then
+                local mousePos = UserInputService:GetMouseLocation()
+                local distance = (Vector2.new(pos.X, pos.Y) - mousePos).Magnitude
+                if distance < shortestDistance then
+                    closestPlayer = player
+                    shortestDistance = distance
+                end
+            end
+        end
+    end
+    return closestPlayer
+end
+
+---------------------------------------------------------
+-- SILENT AIM HOOK
+---------------------------------------------------------
+local rawmetatable = getrawmetatable(game)
+local oldNamecall = rawmetatable.__namecall
+setreadonly(rawmetatable, false)
+
+rawmetatable.__namecall = newcclosure(function(self, ...)
+    local method = getnamecallmethod()
+    local args = {...}
+
+    if (method == "FindPartOnRayWithIgnoreList" or method == "Raycast") and (Config.SilentAim_Weapons or Config.SilentAim_RPG) then
+        local target = GetClosestPlayer()
+        if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+            if method == "FindPartOnRayWithIgnoreList" then
+                local origin = args[1].Origin
+                local targetPos = target.Character.HumanoidRootPart.Position
+                args[1] = Ray.new(origin, (targetPos - origin).Unit * 1000)
+            end
+        end
+    end
+
+    return oldNamecall(self, unpack(args))
+end)
+
+setreadonly(rawmetatable, true)
+
+---------------------------------------------------------
+-- ESP SYSTEM
+---------------------------------------------------------
+local function CreateESP(player)
+    local Box = Drawing.new("Square")
+    Box.Visible = false
+    Box.Color = Color3.fromRGB(255, 0, 0)
+    Box.Thickness = 1.5
+    Box.Filled = false
+
+    local Text = Drawing.new("Text")
+    Text.Visible = false
+    Text.Color = Color3.fromRGB(255, 255, 255)
+    Text.Size = 14
+    Text.Center = true
+    Text.Outline = true
+
+    local Connection
+    Connection = RunService.RenderStepped:Connect(function()
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character:FindFirstChildOfClass("Humanoid") and player.Character.Humanoid.Health > 0 then
+            local hrp = player.Character.HumanoidRootPart
+            local pos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
+
+            if onScreen then
+                local sizeY = (Camera:WorldToViewportPoint(hrp.Position + Vector3.new(0, 3, 0)).Y - Camera:WorldToViewportPoint(hrp.Position - Vector3.new(0, 3, 0)).Y)
+                local sizeX = sizeY / 1.5
+
+                if Config.ESP_Box then
+                    Box.Size = Vector2.new(math.abs(sizeX), math.abs(sizeY))
+                    Box.Position = Vector2.new(pos.X - Box.Size.X / 2, pos.Y - Box.Size.Y / 2)
+                    Box.Visible = true
+                else
+                    Box.Visible = false
+                end
+
+                if Config.ESP_Distance or Config.ESP_Health or Config.ESP_Inventory then
+                    local infoText = player.Name
+                    
+                    if Config.ESP_Health then
+                        infoText = infoText .. " [" .. math.floor(player.Character.Humanoid.Health) .. " HP]"
+                    end
+                    if Config.ESP_Distance and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                        local dist = math.floor((hrp.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude)
+                        infoText = infoText .. " (" .. dist .. "m)"
+                    end
+                    if Config.ESP_Inventory then
+                        local tool = player.Character:FindFirstChildOfClass("Tool")
+                        if tool then
+                            infoText = infoText .. "\nHolding: " .. tool.Name
+                        end
+                    end
+
+                    Text.Text = infoText
+                    Text.Position = Vector2.new(pos.X, pos.Y + (Box.Size.Y / 2) + 2)
+                    Text.Visible = true
+                else
+                    Text.Visible = false
+                end
+            else
+                Box.Visible = false
+                Text.Visible = false
+            end
+        else
+            Box.Visible = false
+            Text.Visible = false
+            if not Players:FindFirstChild(player.Name) then
+                Box:Remove()
+                Text:Remove()
+                Connection:Disconnect()
+            end
+        end
+    end)
+end
+
+for _, p in pairs(Players:GetPlayers()) do
+    if p ~= LocalPlayer then
+        CreateESP(p)
+    end
+end
+
+Players.PlayerAdded:Connect(function(p)
+    if p ~= LocalPlayer then
+        CreateESP(p)
+    end
+end)
+
+---------------------------------------------------------
+-- UNDER MAP & AUTO FARM LOOPS
+---------------------------------------------------------
+RunService.Heartbeat:Connect(function()
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local hrp = LocalPlayer.Character.HumanoidRootPart
+
+        -- UnderMap logic
+        if Config.UnderMap then
+            hrp.CFrame = CFrame.new(hrp.Position.X, -50, hrp.Position.Z)
+        end
+
+        -- AutoFarm basic structure
+        if Config.AutoFarm then
+            local closest = GetClosestPlayer()
+            if closest and closest.Character and closest.Character:FindFirstChild("HumanoidRootPart") then
+                -- Teletransporta o mantiene al jugador cerca/atrás del objetivo si AutoFarm está activo
+                if not Config.UnderMap then
+                    hrp.CFrame = closest.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 3)
+                end
+            end
+        end
+    end
+end)

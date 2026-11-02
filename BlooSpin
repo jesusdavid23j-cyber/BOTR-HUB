@@ -1,0 +1,286 @@
+-- Script Hub para Block Spin | Key: 123
+local CoreGui = game:GetService("CoreGui")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
+-- Eliminar GUI anterior si ya existe
+if CoreGui:FindFirstChild("BlockSpinHub") then
+    CoreGui.BlockSpinHub:Destroy()
+end
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "BlockSpinHub"
+ScreenGui.Parent = CoreGui
+
+-- ==========================================
+-- VENTANA DE KEY SYSTEM
+-- ==========================================
+local KeyFrame = Instance.new("Frame")
+KeyFrame.Size = UDim2.new(0, 320, 0, 180)
+KeyFrame.Position = UDim2.new(0.5, -160, 0.5, -90)
+KeyFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+KeyFrame.BorderSizePixel = 0
+KeyFrame.Parent = ScreenGui
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 8)
+UICorner.Parent = KeyFrame
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.BackgroundTransparency = 1
+Title.Text = "🔑 Block Spin - Key System"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 16
+Title.Font = Enum.Font.SourceSansBold
+Title.Parent = KeyFrame
+
+local TextBox = Instance.new("TextBox")
+TextBox.Size = UDim2.new(0, 260, 0, 40)
+TextBox.Position = UDim2.new(0.5, -130, 0.4, 0)
+TextBox.PlaceholderText = "Ingresa la key (123)"
+TextBox.Text = ""
+TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextBox.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+TextBox.TextSize = 14
+TextBox.Font = Enum.Font.SourceSans
+TextBox.Parent = KeyFrame
+
+local BoxCorner = Instance.new("UICorner")
+BoxCorner.CornerRadius = UDim.new(0, 6)
+BoxCorner.Parent = TextBox
+
+local SubmitBtn = Instance.new("TextButton")
+SubmitBtn.Size = UDim2.new(0, 260, 0, 35)
+SubmitBtn.Position = UDim2.new(0.5, -130, 0.75, 0)
+SubmitBtn.Text = "Comprobar Key"
+SubmitBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+SubmitBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+SubmitBtn.TextSize = 14
+SubmitBtn.Font = Enum.Font.SourceSansBold
+SubmitBtn.Parent = KeyFrame
+
+local BtnCorner = Instance.new("UICorner")
+BtnCorner.CornerRadius = UDim.new(0, 6)
+BtnCorner.Parent = SubmitBtn
+
+-- ==========================================
+-- INTERFAZ PRINCIPAL (Block Spin Hub)
+-- ==========================================
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 400, 0, 330)
+MainFrame.Position = UDim2.new(0.5, -200, 0.5, -165)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+MainFrame.BorderSizePixel = 0
+MainFrame.Visible = false
+MainFrame.Parent = ScreenGui
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 8)
+MainCorner.Parent = MainFrame
+
+local MainTitle = Instance.new("TextLabel")
+MainTitle.Size = UDim2.new(1, 0, 0, 40)
+MainTitle.BackgroundTransparency = 1
+MainTitle.Text = "🌀 Block Spin Hub - Utilidades"
+MainTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+MainTitle.TextSize = 16
+MainTitle.Font = Enum.Font.SourceSansBold
+MainTitle.Parent = MainFrame
+
+-- Botón de Auto Spin (Girar el bloque automático)
+local AutoSpinBtn = Instance.new("TextButton")
+AutoSpinBtn.Size = UDim2.new(0, 340, 0, 40)
+AutoSpinBtn.Position = UDim2.new(0.5, -170, 0.16, 0)
+AutoSpinBtn.Text = "Auto Spin (Girar Bloque): [ OFF ]"
+AutoSpinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+AutoSpinBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+AutoSpinBtn.TextSize = 14
+AutoSpinBtn.Font = Enum.Font.SourceSansBold
+AutoSpinBtn.Parent = MainFrame
+
+local AutoSpinCorner = Instance.new("UICorner")
+AutoSpinCorner.CornerRadius = UDim.new(0, 6)
+AutoSpinCorner.Parent = AutoSpinBtn
+
+-- Botón de ESP para destacar elementos o zonas del mapa
+local ESPBtn = Instance.new("TextButton")
+ESPBtn.Size = UDim2.new(0, 340, 0, 40)
+ESPBtn.Position = UDim2.new(0.5, -170, 0.38, 0)
+ESPBtn.Text = "ESP Jugadores: [ OFF ]"
+ESPBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ESPBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+ESPBtn.TextSize = 14
+ESPBtn.Font = Enum.Font.SourceSansBold
+ESPBtn.Parent = MainFrame
+
+local ESPCorner = Instance.new("UICorner")
+ESPCorner.CornerRadius = UDim.new(0, 6)
+ESPCorner.Parent = ESPBtn
+
+-- ==========================================
+-- SLIDER DE SPEED (1 - 50)
+-- ==========================================
+local SpeedLabel = Instance.new("TextLabel")
+SpeedLabel.Size = UDim2.new(0, 340, 0, 20)
+SpeedLabel.Position = UDim2.new(0.5, -170, 0.62, 0)
+SpeedLabel.BackgroundTransparency = 1
+SpeedLabel.Text = "Velocidad (WalkSpeed): 16"
+SpeedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedLabel.TextSize = 14
+SpeedLabel.Font = Enum.Font.SourceSansBold
+SpeedLabel.TextXAlignment = Enum.TextXAlignment.Left
+SpeedLabel.Parent = MainFrame
+
+local SliderBar = Instance.new("Frame")
+SliderBar.Size = UDim2.new(0, 340, 0, 10)
+SliderBar.Position = UDim2.new(0.5, -170, 0.72, 0)
+SliderBar.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+SliderBar.BorderSizePixel = 0
+SliderBar.Parent = MainFrame
+
+local SliderCorner = Instance.new("UICorner")
+SliderCorner.CornerRadius = UDim.new(1, 0)
+SliderCorner.Parent = SliderBar
+
+local SliderFill = Instance.new("Frame")
+SliderFill.Size = UDim2.new(0, 0, 1, 0)
+SliderFill.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+SliderFill.BorderSizePixel = 0
+SliderFill.Parent = SliderBar
+
+local FillCorner = Instance.new("UICorner")
+FillCorner.CornerRadius = UDim.new(1, 0)
+FillCorner.Parent = SliderFill
+
+local SliderButton = Instance.new("TextButton")
+SliderButton.Size = UDim2.new(1, 0, 1, 0)
+SliderButton.BackgroundTransparency = 1
+SliderButton.Text = ""
+SliderButton.Parent = SliderBar
+
+-- ==========================================
+-- LÓGICA DE LAS FUNCIONES
+-- ==========================================
+
+-- Verificación de Key (123)
+SubmitBtn.MouseButton1Click:Connect(function()
+    if TextBox.Text == "123" then
+        KeyFrame:Destroy()
+        MainFrame.Visible = true
+    else
+        TextBox.Text = ""
+        TextBox.PlaceholderText = "¡Key Incorrecta!"
+    end
+end)
+
+-- Lógica de Auto Spin (Simula la acción de giro continuo en el juego)
+local autoSpinEnabled = false
+AutoSpinBtn.MouseButton1Click:Connect(function()
+    autoSpinEnabled = not autoSpinEnabled
+    if autoSpinEnabled then
+        AutoSpinBtn.Text = "Auto Spin (Girar Bloque): [ ON ]"
+        AutoSpinBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
+        
+        task.spawn(function()
+            while autoSpinEnabled do
+                -- Busca eventos remotos típicos de simuladores de giro o hace clic en elementos de giro
+                pcall(function()
+                    for _, remote in ipairs(game:GetService("ReplicatedStorage"):GetDescendants()) do
+                        if remote:IsA("RemoteEvent") and (string.find(string.lower(remote.Name), "spin") or string.find(string.lower(remote.Name), "roll")) then
+                            remote:FireServer()
+                        end
+                    end
+                end)
+                task.wait(0.5) -- Frecuencia de envío del giro
+            end
+        end)
+    else
+        AutoSpinBtn.Text = "Auto Spin (Girar Bloque): [ OFF ]"
+        AutoSpinBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    end
+end)
+
+-- Lógica ESP de jugadores
+local espEnabled = false
+local espHighlights = {}
+
+ESPBtn.MouseButton1Click:Connect(function()
+    espEnabled = not espEnabled
+    if espEnabled then
+        ESPBtn.Text = "ESP Jugadores: [ ON ]"
+        ESPBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
+        
+        for _, player in ipairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and player.Character and not espHighlights[player] then
+                local highlight = Instance.new("Highlight")
+                highlight.Adornee = player.Character
+                highlight.FillColor = Color3.fromRGB(0, 170, 255)
+                highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+                highlight.Parent = player.Character
+                espHighlights[player] = highlight
+            end
+        end
+    else
+        ESPBtn.Text = "ESP Jugadores: [ OFF ]"
+        ESPBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+        
+        for _, highlight in pairs(espHighlights) do
+            if highlight then highlight:Destroy() end
+        end
+        espHighlights = {}
+    end
+end)
+
+Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function(character)
+        if espEnabled and player ~= LocalPlayer then
+            task.wait(1)
+            if espHighlights[player] then espHighlights[player]:Destroy() end
+            local highlight = Instance.new("Highlight")
+            highlight.Adornee = character
+            highlight.FillColor = Color3.fromRGB(0, 170, 255)
+            highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+            highlight.Parent = character
+            espHighlights[player] = highlight
+        end
+    end)
+end)
+
+-- Lógica del Slider de Speed (1 a 50)
+local dragging = false
+local currentSpeed = 16
+
+local function updateSpeed(input)
+    local pos = math.clamp((input.Position.X - SliderBar.AbsolutePosition.X) / SliderBar.AbsoluteSize.X, 0, 1)
+    SliderFill.Size = UDim2.new(pos, 0, 1, 0)
+    
+    currentSpeed = math.floor(1 + (pos * 49))
+    SpeedLabel.Text = "Velocidad (WalkSpeed): " + currentSpeed
+    
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.WalkSpeed = currentSpeed
+    end
+end
+
+SliderButton.MouseButton1Down:Connect(function()
+    dragging = true
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        updateSpeed(input)
+    end
+end)
+
+SliderButton.MouseButton1Click:Connect(function(input)
+    updateSpeed(input)
+end)

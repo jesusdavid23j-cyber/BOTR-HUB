@@ -1,0 +1,284 @@
+-- Servicios necesarios
+local Players = Service:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+-- Configuración de Estados y Opciones
+local Settings = {
+    AimbotEnabled = false,
+    SilentAimEnabled = false,
+    ESPEnabled = false,
+    SpeedEnabled = false,
+    SpeedValue = 16,
+    AimKey = Enum.UserInputType.MouseButton2, -- Click derecho para aimbot
+    FOV = 150
+}
+
+-- Almacenamiento de elementos visuales de ESP
+local ESPBoxes = {}
+
+-- Crear la Interfaz Gráfica (GUI)
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "CustomAimMenu"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = game.CoreGui
+
+-- Botón para Abrir / Cerrar Menú (Flotante)
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Name = "ToggleMenu"
+ToggleButton.Size = UDim2.new(0, 120, 0, 40)
+ToggleButton.Position = UDim2.new(0, 20, 0, 20)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleButton.TextSize = 14
+ToggleButton.Font = Enum.Font.SourceSansBold
+ToggleButton.Text = "Menu [F]"
+ToggleButton.Parent = ScreenGui
+
+-- Marco Principal del Menú
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 260, 0, 310)
+MainFrame.Position = UDim2.new(0, 20, 0, 75)
+MainFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+MainFrame.BorderSizePixel = 0
+MainFrame.Visible = true
+MainFrame.Parent = ScreenGui
+
+local UIcornerRadius = Instance.new("UICorner")
+UIcornerRadius.CornerRadius = UDim.new(0, 6)
+UIcornerRadius.Parent = MainFrame
+
+-- Título del Menú
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 35)
+Title.BackgroundTransparency = 1
+Title.Text = "Panel de Control v2"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 16
+Title.Font = Enum.Font.SourceSansBold
+Title.Parent = MainFrame
+
+-- Función para crear toggles visuales
+local function CreateToggle(name, yPos, callback)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0, 220, 0, 32)
+    btn.Position = UDim2.new(0, 20, 0, yPos)
+    btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    btn.TextColor3 = Color3.fromRGB(255, 100, 100)
+    btn.TextSize = 14
+    btn.Font = Enum.Font.SourceSans
+    btn.Text = name .. ": OFF"
+    btn.Parent = MainFrame
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 4)
+    corner.Parent = btn
+    
+    local state = false
+    btn.MouseButton1Click:Connect(function()
+        state = not state
+        if state then
+            btn.TextColor3 = Color3.fromRGB(100, 255, 100)
+            btn.Text = name .. ": ON"
+        else
+            btn.TextColor3 = Color3.fromRGB(255, 100, 100)
+            btn.Text = name .. ": OFF"
+        end
+        callback(state)
+    end)
+end
+
+-- Añadir Toggles al Menú
+CreateToggle("Aimbot", 45, function(state)
+    Settings.AimbotEnabled = state
+end)
+
+CreateToggle("Silent Aim", 85, function(state)
+    Settings.SilentAimEnabled = state
+end)
+
+CreateToggle("ESP (Players)", 125, function(state)
+    Settings.ESPEnabled = state
+end)
+
+CreateToggle("Speed Hack", 165, function(state)
+    Settings.SpeedEnabled = state
+end)
+
+-- Control deslizante (Slider) para configurar la velocidad (16 a 300)
+local SpeedLabel = Instance.new("TextLabel")
+SpeedLabel.Size = UDim2.new(0, 220, 0, 20)
+SpeedLabel.Position = UDim2.new(0, 20, 0, 205)
+SpeedLabel.BackgroundTransparency = 1
+SpeedLabel.Text = "Velocidad: 16"
+SpeedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedLabel.TextSize = 13
+SpeedLabel.Font = Enum.Font.SourceSans
+SpeedLabel.Parent = MainFrame
+
+local SpeedInput = Instance.new("TextBox")
+SpeedInput.Size = UDim2.new(0, 220, 0, 28)
+SpeedInput.Position = UDim2.new(0, 20, 0, 225)
+SpeedInput.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+SpeedInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedInput.TextSize = 14
+SpeedInput.Font = Enum.Font.SourceSans
+SpeedInput.Text = "16"
+SpeedInput.PlaceholderText = "Escribe velocidad (16 - 300)"
+SpeedInput.Parent = MainFrame
+
+local inputCorner = Instance.new("UICorner")
+inputCorner.CornerRadius = UDim.new(0, 4)
+inputCorner.Parent = SpeedInput
+
+SpeedInput.FocusLost:Connect(function(enterPressed)
+    local val = tonumber(SpeedInput.Text)
+    if val then
+        if val < 16 then val = 16 end
+        if val > 300 then val = 300 end
+        Settings.SpeedValue = val
+        SpeedInput.Text = tostring(val)
+        SpeedLabel.Text = "Velocidad: " .. val
+    else
+        SpeedInput.Text = tostring(Settings.SpeedValue)
+    end
+end)
+
+-- Botón Cerrar Menú dentro del panel
+local CloseButton = Instance.new("TextButton")
+CloseButton.Size = UDim2.new(0, 220, 0, 28)
+CloseButton.Position = UDim2.new(0, 20, 0, 265)
+CloseButton.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.TextSize = 14
+CloseButton.Font = Enum.Font.SourceSansBold
+CloseButton.Text = "Ocultar Menú"
+CloseButton.Parent = MainFrame
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 4)
+closeCorner.Parent = CloseButton
+
+-- Lógica de Apertura y Cierre
+local function ToggleVisibility()
+    MainFrame.Visible = not MainFrame.Visible
+end
+
+ToggleButton.MouseButton1Click:Connect(ToggleVisibility)
+CloseButton.MouseButton1Click:Connect(ToggleVisibility)
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and input.KeyCode == Enum.KeyCode.F then
+        ToggleVisibility()
+    end
+end)
+
+-- Función Auxiliar: Encontrar el jugador más cercano al mouse
+local function GetClosestPlayer()
+    local closestPlayer = nil
+    local shortestDistance = Settings.FOV
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+            if humanoid and humanoid.Health > 0 then
+                local vector, onScreen = Camera:WorldToViewportPoint(player.Character.HumanoidRootPart.Position)
+                if onScreen then
+                    local mousePos = UserInputService:GetMouseLocation()
+                    local distance = (Vector2.new(vector.X, vector.Y) - mousePos).Magnitude
+                    if distance < shortestDistance then
+                        shortestDistance = distance
+                        closestPlayer = player
+                    end
+                end
+            end
+        end
+    end
+    return closestPlayer
+end
+
+-- Lógica principal por cuadro (RenderStepped) para Aimbot, Speed y ESP
+RunService.RenderStepped:Connect(function()
+    -- 1. Aimbot Logic
+    if Settings.AimbotEnabled and UserInputService:IsMouseButtonPressed(Settings.AimKey) then
+        local target = GetClosestPlayer()
+        if target and target.Character and target.Character:FindFirstChild("Head") then
+            Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Character.Head.Position)
+        end
+    end
+
+    -- 2. Speed Hack Logic
+    if Settings.SpeedEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+        LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = Settings.SpeedValue
+    elseif LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+        LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = 16 -- Restablece por defecto si se desactiva
+    end
+
+    -- 3. ESP Simple (Cajas y Nombres)
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            if Settings.ESPEnabled and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                local rootPart = player.Character.HumanoidRootPart
+                local vector, onScreen = Camera:WorldToViewportPoint(rootPart.Position)
+                
+                if not ESPBoxes[player] then
+                    local box = Drawing.new("Text")
+                    box.Visible = false
+                    box.Center = true
+                    box.Outline = true
+                    box.Font = 2
+                    box.Size = 14
+                    box.Color = Color3.fromRGB(255, 0, 0)
+                    ESPBoxes[player] = box
+                end
+                
+                local box = ESPBoxes[player]
+                if onScreen then
+                    box.Position = Vector2.new(vector.X, vector.Y)
+                    box.Text = player.Name
+                    box.Visible = true
+                else
+                    box.Visible = false
+                end
+            else
+                if ESPBoxes[player] then
+                    ESPBoxes[player].Visible = false
+                end
+            end
+        end
+    end
+end)
+
+-- Limpieza de ESP si un jugador se va
+Players.PlayerRemoving:Connect(function(player)
+    if ESPBoxes[player] then
+        ESPBoxes[player]:Remove()
+        ESPBoxes[player] = nil
+    end
+end)
+
+-- Lógica de Silent Aim (Metatable Hook)
+if pcall(function() return getrawmetatable(game) end) then
+    local mt = getrawmetatable(game)
+    setreadonly(mt, false)
+    local oldIndex = mt.__namecall
+
+    mt.__namecall = newcclosure(function(self, ...)
+        local method = getnamecallmethod()
+        local args = {...}
+        
+        if Settings.SilentAimEnabled and method == "FindPartOnRayWithIgnoreList" then
+            local target = GetClosestPlayer()
+            if target and target.Character and target.Character:FindFirstChild("Head") then
+                local origin = args[1].Origin
+                args[1] = Ray.new(origin, (target.Character.Head.Position - origin).Unit * 1000)
+                return oldIndex(self, unpack(args))
+            end
+        end
+        return oldIndex(self, ...)
+    end)
+    setreadonly(mt, true)
+end
